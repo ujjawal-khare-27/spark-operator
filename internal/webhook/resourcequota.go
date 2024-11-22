@@ -87,15 +87,21 @@ func getCoresRequests(app *v1beta2.SparkApplication) (corev1.ResourceList, error
 		return nil, err
 	}
 
+	executorsCoresRequests := []corev1.ResourceList{}
+	for _, executor := range app.Spec.Executor {
+		// Calculate executor cores requests.
+		var replicas int64 = 1
+		if executor.Instances != nil {
+			replicas = int64(*executor.Instances)
+		}
+		executorCoresRequests, err := getSparkPodCoresRequests(&executor.SparkPodSpec, replicas)
+		if err != nil {
+			return nil, err
+		}
+		executorsCoresRequests = append(executorsCoresRequests, executorCoresRequests)
+	}
 	// Calculate executor cores requests.
-	var replicas int64 = 1
-	if app.Spec.Executor.Instances != nil {
-		replicas = int64(*app.Spec.Executor.Instances)
-	}
-	executorCoresRequests, err := getSparkPodCoresRequests(&app.Spec.Executor.SparkPodSpec, replicas)
-	if err != nil {
-		return nil, err
-	}
+	executorCoresRequests := util.SumResourceList(executorsCoresRequests)
 
 	return util.SumResourceList([]corev1.ResourceList{driverCoresRequests, executorCoresRequests}), nil
 }
@@ -122,16 +128,24 @@ func getCoresLimits(app *v1beta2.SparkApplication) (corev1.ResourceList, error) 
 	}
 
 	// Calculate executor cores requests.
-	var replicas int64 = 1
-	if app.Spec.Executor.Instances != nil {
-		replicas = int64(*app.Spec.Executor.Instances)
-	}
-	executorCoresLimits, err := getSparkPodCoresLimits(&app.Spec.Executor.SparkPodSpec, replicas)
-	if err != nil {
-		return nil, err
+
+	executorsResourcesList := []corev1.ResourceList{}
+	for _, executor := range app.Spec.Executor {
+		var replicas int64 = 1
+		if executor.Instances != nil {
+			replicas = int64(*executor.Instances)
+		}
+		executorCoresLimits, err := getSparkPodCoresLimits(&executor.SparkPodSpec, replicas)
+
+		if err != nil {
+			return nil, err
+		}
+		executorsResourcesList = append(executorsResourcesList, executorCoresLimits)
 	}
 
-	return util.SumResourceList([]corev1.ResourceList{driverCoresLimits, executorCoresLimits}), nil
+	executorsCoresLimits := util.SumResourceList(executorsResourcesList)
+
+	return util.SumResourceList([]corev1.ResourceList{driverCoresLimits, executorsCoresLimits}), nil
 }
 
 func getSparkPodCoresLimits(podSpec *v1beta2.SparkPodSpec, replicas int64) (corev1.ResourceList, error) {
@@ -174,15 +188,21 @@ func getMemoryRequests(app *v1beta2.SparkApplication) (corev1.ResourceList, erro
 		return nil, err
 	}
 
-	// Calculate executor pod memory requests.
-	var replicas int64 = 1
-	if app.Spec.Executor.Instances != nil {
-		replicas = int64(*app.Spec.Executor.Instances)
+	executorsMemoryRequests := []corev1.ResourceList{}
+	for _, executor := range app.Spec.Executor {
+		// Calculate executor pod memory requests.
+		var replicas int64 = 1
+		if executor.Instances != nil {
+			replicas = int64(*executor.Instances)
+		}
+		executorResourceList, err := getSparkPodMemoryRequests(&executor.SparkPodSpec, memoryOverheadFactor, replicas)
+		executorsMemoryRequests = append(executorsMemoryRequests, executorResourceList)
+		if err != nil {
+			return nil, err
+		}
 	}
-	executorResourceList, err := getSparkPodMemoryRequests(&app.Spec.Executor.SparkPodSpec, memoryOverheadFactor, replicas)
-	if err != nil {
-		return nil, err
-	}
+
+	executorResourceList := util.SumResourceList(executorsMemoryRequests)
 
 	return util.SumResourceList([]corev1.ResourceList{driverResourceList, executorResourceList}), nil
 }

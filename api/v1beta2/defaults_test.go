@@ -164,66 +164,74 @@ func TestSetSparkApplicationDefaultsExecutorSpecDefaults(t *testing.T) {
 
 	SetSparkApplicationDefaults(app)
 
-	fmt.Printf("SparkApplication: %+v\n", app.Spec)
+	fmt.Printf("SparkApplication: %+v\n", app.Spec.Executor)
 
-	// if app.Spec.Executor.Cores == nil {
-	// 	t.Error("Expected app.Spec.Executor.Cores not to be nil.")
-	// } else {
-	// 	assert.Equal(t, int32(1), *app.Spec.Executor.Cores)
-	// }
+	for _, executorSpec := range app.Spec.Executor {
+		if executorSpec.Cores == nil {
+			t.Error("Expected executorSpec.Cores not to be nil.")
+		} else {
+			assert.Equal(t, int32(1), *executorSpec.Cores)
+		}
 
-	// if app.Spec.Executor.Memory == nil {
-	// 	t.Error("Expected app.Spec.Executor.Memory not to be nil.")
-	// } else {
-	// 	assert.Equal(t, "1g", *app.Spec.Executor.Memory)
-	// }
+		if executorSpec.Memory == nil {
+			t.Error("Expected executorSpec.Memory not to be nil.")
+		} else {
+			assert.Equal(t, "1g", *executorSpec.Memory)
+		}
 
-	// if app.Spec.Executor.Instances == nil {
-	// 	t.Error("Expected app.Spec.Executor.Instances not to be nil.")
-	// } else {
-	// 	assert.Equal(t, int32(1), *app.Spec.Executor.Instances)
-	// }
+		if executorSpec.Instances == nil {
+			t.Error("Expected executorSpec.Instances not to be nil.")
+		} else {
+			assert.Equal(t, int32(1), *executorSpec.Instances)
+		}
+	}
 
-	// //Case2: Executor config set via SparkConf.
-	// app = &SparkApplication{
-	// 	Spec: SparkApplicationSpec{
-	// 		SparkConf: map[string]string{
-	// 			"spark.executor.cores":     "2",
-	// 			"spark.executor.memory":    "500M",
-	// 			"spark.executor.instances": "3",
-	// 		},
-	// 	},
-	// }
+	//Case2: Executor config set via SparkConf.
+	app = &SparkApplication{
+		Spec: SparkApplicationSpec{
+			SparkConf: map[string]string{
+				"spark.executor.cores":     "2",
+				"spark.executor.memory":    "500M",
+				"spark.executor.instances": "3",
+			},
+		},
+	}
 
-	// SetSparkApplicationDefaults(app)
+	SetSparkApplicationDefaults(app)
 
-	// assert.Nil(t, app.Spec.Executor.Cores)
-	// assert.Nil(t, app.Spec.Executor.Memory)
-	// assert.Nil(t, app.Spec.Executor.Instances)
+	for _, executorSpec := range app.Spec.Executor {
+		assert.Nil(t, executorSpec.Cores)
+		assert.Nil(t, executorSpec.Memory)
+		assert.Nil(t, executorSpec.Instances)
+	}
 
-	// //Case3: Dynamic allocation is enabled with minExecutors = 0
-	// var minExecs = int32(0)
-	// app = &SparkApplication{
-	// 	Spec: SparkApplicationSpec{
-	// 		DynamicAllocation: &DynamicAllocation{
-	// 			Enabled:      true,
-	// 			MinExecutors: &minExecs,
-	// 		},
-	// 	},
-	// }
+	//Case3: Dynamic allocation is enabled with minExecutors = 0
+	var minExecs = int32(0)
+	app = &SparkApplication{
+		Spec: SparkApplicationSpec{
+			DynamicAllocation: &DynamicAllocation{
+				Enabled:      true,
+				MinExecutors: &minExecs,
+			},
+		},
+	}
 
-	// SetSparkApplicationDefaults(app)
-	// assert.Nil(t, app.Spec.Executor.Instances)
+	SetSparkApplicationDefaults(app)
+	for _, executorSpec := range app.Spec.Executor {
+		assert.Nil(t, executorSpec.Instances)
+	}
 
-	// //Case4: Dynamic allocation is enabled via SparkConf
-	// app = &SparkApplication{
-	// 	Spec: SparkApplicationSpec{
-	// 		SparkConf: map[string]string{
-	// 			"spark.dynamicallocation.enabled": "true",
-	// 		},
-	// 	},
-	// }
+	//Case4: Dynamic allocation is enabled via SparkConf
+	app = &SparkApplication{
+		Spec: SparkApplicationSpec{
+			SparkConf: map[string]string{
+				"spark.dynamicallocation.enabled": "true",
+			},
+		},
+	}
 
-	// SetSparkApplicationDefaults(app)
-	// assert.Nil(t, app.Spec.Executor.Instances)
+	SetSparkApplicationDefaults(app)
+	for _, executorSpec := range app.Spec.Executor {
+		assert.Nil(t, executorSpec.Instances)
+	}
 }

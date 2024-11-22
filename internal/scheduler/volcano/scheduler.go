@@ -114,8 +114,11 @@ func (s *Scheduler) Schedule(app *v1beta2.SparkApplication) error {
 	if app.Spec.Driver.Annotations == nil {
 		app.Spec.Driver.Annotations = make(map[string]string)
 	}
-	if app.Spec.Executor.Annotations == nil {
-		app.Spec.Executor.Annotations = make(map[string]string)
+
+	for _, executor := range app.Spec.Executor {
+		if executor.Annotations == nil {
+			executor.Annotations = make(map[string]string)
+		}
 	}
 
 	switch app.Spec.Mode {
@@ -140,18 +143,21 @@ func (s *Scheduler) Cleanup(app *v1beta2.SparkApplication) error {
 
 func (s *Scheduler) syncPodGroupInClientMode(app *v1beta2.SparkApplication) error {
 	// We only care about the executor pods in client mode
-	if _, ok := app.Spec.Executor.Annotations[v1beta1.KubeGroupNameAnnotationKey]; !ok {
-		totalResource := util.GetExecutorRequestResource(app)
+	for _, executor := range app.Spec.Executor {
+		if _, ok := executor.Annotations[v1beta1.KubeGroupNameAnnotationKey]; !ok {
+			totalResource := util.GetExecutorRequestResource(app)
 
-		if app.Spec.BatchSchedulerOptions != nil && len(app.Spec.BatchSchedulerOptions.Resources) > 0 {
-			totalResource = app.Spec.BatchSchedulerOptions.Resources
-		}
-		if err := s.syncPodGroup(app, 1, totalResource); err == nil {
-			app.Spec.Executor.Annotations[v1beta1.KubeGroupNameAnnotationKey] = getPodGroupName(app)
-		} else {
-			return err
+			if app.Spec.BatchSchedulerOptions != nil && len(app.Spec.BatchSchedulerOptions.Resources) > 0 {
+				totalResource = app.Spec.BatchSchedulerOptions.Resources
+			}
+			if err := s.syncPodGroup(app, 1, totalResource); err == nil {
+				executor.Annotations[v1beta1.KubeGroupNameAnnotationKey] = getPodGroupName(app)
+			} else {
+				return err
+			}
 		}
 	}
+
 	return nil
 }
 
@@ -169,7 +175,11 @@ func (s *Scheduler) syncPodGroupInClusterMode(app *v1beta2.SparkApplication) err
 			return err
 		}
 		app.Spec.Driver.Annotations[v1beta1.KubeGroupNameAnnotationKey] = getPodGroupName(app)
-		app.Spec.Executor.Annotations[v1beta1.KubeGroupNameAnnotationKey] = getPodGroupName(app)
+
+		for _, executor := range app.Spec.Executor {
+			executor.Annotations[v1beta1.KubeGroupNameAnnotationKey] = getPodGroupName(app)
+
+		}
 	}
 	return nil
 }
