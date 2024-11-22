@@ -1,0 +1,58 @@
+?   	github.com/kubeflow/spark-operator	[no test files]
+?   	github.com/kubeflow/spark-operator/api/v1beta1	[no test files]
+FAIL	github.com/kubeflow/spark-operator/api/v1beta2 [build failed]
+FAIL	github.com/kubeflow/spark-operator/cmd [build failed]
+FAIL	github.com/kubeflow/spark-operator/cmd/operator [build failed]
+FAIL	github.com/kubeflow/spark-operator/cmd/operator/controller [build failed]
+?   	github.com/kubeflow/spark-operator/cmd/operator/version	[no test files]
+FAIL	github.com/kubeflow/spark-operator/cmd/operator/webhook [build failed]
+?   	github.com/kubeflow/spark-operator/hack/api-docs/template	[no test files]
+?   	github.com/kubeflow/spark-operator/internal/controller	[no test files]
+?   	github.com/kubeflow/spark-operator/internal/controller/mutatingwebhookconfiguration	[no test files]
+FAIL	github.com/kubeflow/spark-operator/internal/controller/scheduledsparkapplication [build failed]
+FAIL	github.com/kubeflow/spark-operator/internal/controller/sparkapplication [build failed]
+?   	github.com/kubeflow/spark-operator/internal/controller/validatingwebhookconfiguration	[no test files]
+FAIL	github.com/kubeflow/spark-operator/internal/metrics [build failed]
+?   	github.com/kubeflow/spark-operator/internal/scheduler	[no test files]
+FAIL	github.com/kubeflow/spark-operator/internal/scheduler/kubescheduler [build failed]
+FAIL	github.com/kubeflow/spark-operator/internal/scheduler/volcano [build failed]
+FAIL	github.com/kubeflow/spark-operator/internal/scheduler/yunikorn [build failed]
+FAIL	github.com/kubeflow/spark-operator/internal/scheduler/yunikorn/resourceusage [build failed]
+FAIL	github.com/kubeflow/spark-operator/internal/webhook [build failed]
+?   	github.com/kubeflow/spark-operator/pkg/client/clientset/versioned	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/clientset/versioned/fake	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/clientset/versioned/scheme	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/clientset/versioned/typed/sparkoperator.k8s.io/v1beta1	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/clientset/versioned/typed/sparkoperator.k8s.io/v1beta1/fake	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/clientset/versioned/typed/sparkoperator.k8s.io/v1beta2	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/clientset/versioned/typed/sparkoperator.k8s.io/v1beta2/fake	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/informers/externalversions	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/informers/externalversions/internalinterfaces	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/informers/externalversions/sparkoperator.k8s.io	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/informers/externalversions/sparkoperator.k8s.io/v1beta1	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/informers/externalversions/sparkoperator.k8s.io/v1beta2	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/listers/sparkoperator.k8s.io/v1beta1	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/client/listers/sparkoperator.k8s.io/v1beta2	[no test files]
+?   	github.com/kubeflow/spark-operator/pkg/common	[no test files]
+FAIL	github.com/kubeflow/spark-operator/pkg/util [build failed]
+FAIL	github.com/kubeflow/spark-operator/sparkctl [build failed]
+FAIL	github.com/kubeflow/spark-operator/sparkctl/cmd [build failed]
+FAIL	github.com/kubeflow/spark-operator/test/e2e [build failed]
+=== RUN   TestCertProvider
+Running Suite: Certificate Suite - /Users/ujjawalkhare/Desktop/Projects/spark-operator/pkg/certificate
+======================================================================================================
+Random Seed: [1m1732191876[0m
+
+Will run [1m7[0m of [1m7[0m specs
+[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m[38;5;10m•[0m
+
+[38;5;10m[1mRan 7 of 7 Specs in 5.647 seconds[0m
+[38;5;10m[1mSUCCESS![0m -- [38;5;10m[1m7 Passed[0m | [38;5;9m[1m0 Failed[0m | [38;5;11m[1m0 Pending[0m | [38;5;14m[1m0 Skipped[0m
+--- PASS: TestCertProvider (5.65s)
+=== RUN   TestNewPrivateKey
+--- PASS: TestNewPrivateKey (0.07s)
+=== RUN   TestNewSignedServerCert
+--- PASS: TestNewSignedServerCert (0.18s)
+PASS
+ok  	github.com/kubeflow/spark-operator/pkg/certificate	6.362s
+FAIL
