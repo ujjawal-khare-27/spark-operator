@@ -104,11 +104,11 @@ func TestValidateSpec(t *testing.T) {
 		{
 			name: "application with no spec.image and spec.driver.image",
 			spec: v1beta2.SparkApplicationSpec{
-				Executor: v1beta2.ExecutorSpec{
+				Executor: []v1beta2.ExecutorSpec{{
 					SparkPodSpec: v1beta2.SparkPodSpec{
 						Image: &image,
 					},
-				},
+				}},
 			},
 			expectsValidationError: true,
 		},
@@ -120,6 +120,9 @@ func TestValidateSpec(t *testing.T) {
 						Image: &image,
 					},
 				},
+				Executor: []v1beta2.ExecutorSpec{{
+					SparkPodSpec: v1beta2.SparkPodSpec{},
+				}},
 			},
 			expectsValidationError: true,
 		},
@@ -132,11 +135,11 @@ func TestValidateSpec(t *testing.T) {
 						Image: &image,
 					},
 				},
-				Executor: v1beta2.ExecutorSpec{
+				Executor: []v1beta2.ExecutorSpec{{
 					SparkPodSpec: v1beta2.SparkPodSpec{
 						Image: &image,
 					},
-				},
+				}},
 			},
 			expectsValidationError: false,
 		},
@@ -165,8 +168,8 @@ func TestLoadFromYAML(t *testing.T) {
 	assert.Equal(t, "org.examples.SparkExample", *app.Spec.MainClass)
 	assert.Equal(t, "local:///path/to/example.jar", *app.Spec.MainApplicationFile)
 	assert.Equal(t, "spark", *app.Spec.Driver.Image)
-	assert.Equal(t, "spark", *app.Spec.Executor.Image)
-	assert.Equal(t, 1, int(*app.Spec.Executor.Instances))
+	assert.Equal(t, "spark", *(app.Spec.Executor)[0].Image)
+	assert.Equal(t, 1, int(*(app.Spec.Executor)[0].Instances))
 }
 
 func TestHandleHadoopConfiguration(t *testing.T) {

@@ -768,7 +768,13 @@ func (in *SparkApplicationSpec) DeepCopyInto(out *SparkApplicationSpec) {
 		}
 	}
 	in.Driver.DeepCopyInto(&out.Driver)
-	in.Executor.DeepCopyInto(&out.Executor)
+	// in.Executor.DeepCopyInto(&out.Executor)
+
+	if in.Executor != nil {
+		in, out := &in.Executor, &out.Executor
+		*out = make([]ExecutorSpec, len(*in))
+		copy(*out, *in)
+	}
 	in.Deps.DeepCopyInto(&out.Deps)
 	in.RestartPolicy.DeepCopyInto(&out.RestartPolicy)
 	if in.NodeSelector != nil {

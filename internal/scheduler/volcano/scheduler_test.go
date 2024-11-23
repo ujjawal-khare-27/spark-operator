@@ -111,13 +111,14 @@ func TestGetExecutorResource(t *testing.T) {
 			Name: "Validate Core and memory",
 			app: v1beta2.SparkApplication{
 				Spec: v1beta2.SparkApplicationSpec{
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							Cores:          &oneCore,
 							Memory:         &oneGB,
 							MemoryOverhead: &oneGB,
 						},
 						Instances: &instances,
+					},
 					},
 				},
 			},
@@ -127,7 +128,7 @@ func TestGetExecutorResource(t *testing.T) {
 			Name: "Validate CoreRequest and memory",
 			app: v1beta2.SparkApplication{
 				Spec: v1beta2.SparkApplicationSpec{
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							Cores:          &twoCores,
 							Memory:         &oneGB,
@@ -135,7 +136,7 @@ func TestGetExecutorResource(t *testing.T) {
 						},
 						CoreRequest: &oneCoreStr,
 						Instances:   &instances,
-					},
+					}},
 				},
 			},
 			result: result,
@@ -144,14 +145,14 @@ func TestGetExecutorResource(t *testing.T) {
 			Name: "Validate CoreLimit and memory",
 			app: v1beta2.SparkApplication{
 				Spec: v1beta2.SparkApplicationSpec{
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							CoreLimit:      &oneCoreStr,
 							Memory:         &oneGB,
 							MemoryOverhead: &oneGB,
 						},
 						Instances: &instances,
-					},
+					}},
 				},
 			},
 			result: result,
