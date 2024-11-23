@@ -58,13 +58,13 @@ func DriverPodRequests(app *v1beta2.SparkApplication) (map[string]string, error)
 	}, nil
 }
 
-func ExecutorPodRequests(app *v1beta2.SparkApplication) (map[string]string, error) {
-	cpuValue, err := cpuRequest(app.Spec.Executor.Cores, app.Spec.Executor.CoreRequest)
+func ExecutorPodRequests(app *v1beta2.SparkApplication, executor v1beta2.ExecutorSpec) (map[string]string, error) {
+	cpuValue, err := cpuRequest(executor.Cores, executor.CoreRequest)
 	if err != nil {
 		return nil, err
 	}
 
-	memoryValue, err := executorMemoryRequest(app)
+	memoryValue, err := executorMemoryRequest(app, executor)
 	if err != nil {
 		return nil, err
 	}

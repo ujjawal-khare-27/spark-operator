@@ -1235,8 +1235,18 @@ func (r *Reconciler) cleanUpOnTermination(_, newApp *v1beta2.SparkApplication) e
 
 // cleanUpPodTemplateFiles cleans up the driver and executor pod template files.
 func (r *Reconciler) cleanUpPodTemplateFiles(app *v1beta2.SparkApplication) error {
-	if app.Spec.Driver.Template == nil && app.Spec.Executor.Template == nil {
-		return nil
+	isCleanRequired := false
+	if app.Spec.Driver.Template == nil {
+		for _, executor := range app.Spec.Executor {
+			if executor.Template == nil {
+				continue
+			}
+			isCleanRequired = true
+		}
+
+		if !isCleanRequired {
+			return nil
+		}
 	}
 	path := fmt.Sprintf("/tmp/spark/%s", app.Status.SubmissionID)
 	if err := os.RemoveAll(path); err != nil {

@@ -121,8 +121,14 @@ func (v *SparkApplicationValidator) validateSpec(_ context.Context, app *v1beta2
 		return err
 	}
 
-	if app.Spec.NodeSelector != nil && (app.Spec.Driver.NodeSelector != nil || app.Spec.Executor.NodeSelector != nil) {
+	if app.Spec.NodeSelector != nil && (app.Spec.Driver.NodeSelector != nil) {
 		return fmt.Errorf("node selector cannot be defined at both SparkApplication and Driver/Executor")
+	}
+
+	for _, executor := range app.Spec.Executor {
+		if app.Spec.NodeSelector != nil && executor.NodeSelector != nil {
+			return fmt.Errorf("node selector cannot be defined at both SparkApplication and Driver/Executor")
+		}
 	}
 
 	servicePorts := make(map[int32]bool)
@@ -150,9 +156,17 @@ func (v *SparkApplicationValidator) validateSpec(_ context.Context, app *v1beta2
 
 func (v *SparkApplicationValidator) validateSparkVersion(app *v1beta2.SparkApplication) error {
 	// The pod template feature requires Spark version 3.0.0 or higher.
-	if app.Spec.Driver.Template != nil || app.Spec.Executor.Template != nil {
+	if app.Spec.Driver.Template != nil {
 		if util.CompareSemanticVersion(app.Spec.SparkVersion, "3.0.0") < 0 {
 			return fmt.Errorf("pod template feature requires Spark version 3.0.0 or higher")
+		}
+	}
+
+	for _, executor := range app.Spec.Executor {
+		if executor.Template != nil {
+			if util.CompareSemanticVersion(app.Spec.SparkVersion, "3.0.0") < 0 {
+				return fmt.Errorf("pod template feature requires Spark version 3.0.0 or higher")
+			}
 		}
 	}
 	return nil

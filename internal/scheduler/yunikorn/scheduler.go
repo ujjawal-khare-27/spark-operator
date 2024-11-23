@@ -95,7 +95,7 @@ func (s *Scheduler) Schedule(app *v1beta2.SparkApplication) error {
 
 	for _, executor := range app.Spec.Executor {
 		if numInitialExecutors := util.GetInitialExecutorNumber(app, executor); numInitialExecutors > 0 {
-			executorMinResources, err := resourceusage.ExecutorPodRequests(app)
+			executorMinResources, err := resourceusage.ExecutorPodRequests(app, executor)
 			if err != nil {
 				return fmt.Errorf("failed to calculate executor minResources: %w", err)
 			}

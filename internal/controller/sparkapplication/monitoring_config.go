@@ -104,18 +104,21 @@ func configPrometheusMonitoring(app *v1beta2.SparkApplication, client client.Cli
 			*app.Spec.Driver.JavaOptions = *app.Spec.Driver.JavaOptions + " " + javaOption
 		}
 	}
-	if app.Spec.Monitoring.ExposeExecutorMetrics {
-		if app.Spec.Executor.Annotations == nil {
-			app.Spec.Executor.Annotations = make(map[string]string)
-		}
-		app.Spec.Executor.Annotations[common.PrometheusScrapeAnnotation] = "true"
-		app.Spec.Executor.Annotations[common.PrometheusPortAnnotation] = fmt.Sprintf("%d", port)
-		app.Spec.Executor.Annotations[common.PrometheusPathAnnotation] = "/metrics"
 
-		if app.Spec.Executor.JavaOptions == nil {
-			app.Spec.Executor.JavaOptions = &javaOption
-		} else {
-			*app.Spec.Executor.JavaOptions = *app.Spec.Executor.JavaOptions + " " + javaOption
+	for _, executor := range app.Spec.Executor {
+		if app.Spec.Monitoring.ExposeExecutorMetrics {
+			if executor.Annotations == nil {
+				executor.Annotations = make(map[string]string)
+			}
+			executor.Annotations[common.PrometheusScrapeAnnotation] = "true"
+			executor.Annotations[common.PrometheusPortAnnotation] = fmt.Sprintf("%d", port)
+			executor.Annotations[common.PrometheusPathAnnotation] = "/metrics"
+
+			if executor.JavaOptions == nil {
+				executor.JavaOptions = &javaOption
+			} else {
+				*executor.JavaOptions = *executor.JavaOptions + " " + javaOption
+			}
 		}
 	}
 
