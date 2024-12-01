@@ -665,75 +665,79 @@ func executorConfOption(app *v1beta2.SparkApplication) ([]string, error) {
 	property = fmt.Sprintf(common.SparkKubernetesExecutorLabelTemplate, common.LabelSubmissionID)
 	args = append(args, "--conf", fmt.Sprintf("%s=%s", property, app.Status.SubmissionID))
 
-	if app.Spec.Executor.Instances != nil {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%d", common.SparkExecutorInstances, *app.Spec.Executor.Instances))
-	}
+	for _, executor := range app.Spec.Executor {
 
-	if app.Spec.Executor.Image != nil && *app.Spec.Executor.Image != "" {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorContainerImage, *app.Spec.Executor.Image))
-	} else if app.Spec.Image != nil && *app.Spec.Image != "" {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorContainerImage, *app.Spec.Image))
-	} else {
-		return nil, fmt.Errorf("executor container image is not specified")
-	}
+		if executor.Instances != nil {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%d", common.SparkExecutorInstances, *executor.Instances))
+		}
 
-	if app.Spec.Executor.Cores != nil {
-		// Property "spark.executor.cores" does not allow float values.
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%d", common.SparkExecutorCores, *app.Spec.Executor.Cores))
-	}
-	if app.Spec.Executor.CoreRequest != nil {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorRequestCores, *app.Spec.Executor.CoreRequest))
-	}
-	if app.Spec.Executor.CoreLimit != nil {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorLimitCores, *app.Spec.Executor.CoreLimit))
-	}
-	if app.Spec.Executor.Memory != nil {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%s", common.SparkExecutorMemory, *app.Spec.Executor.Memory))
-	}
-	if app.Spec.Executor.MemoryOverhead != nil {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%s", common.SparkExecutorMemoryOverhead, *app.Spec.Executor.MemoryOverhead))
-	}
+		if executor.Image != nil && *executor.Image != "" {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorContainerImage, *executor.Image))
+		} else if app.Spec.Image != nil && *app.Spec.Image != "" {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorContainerImage, *app.Spec.Image))
+		} else {
+			return nil, fmt.Errorf("executor container image is not specified")
+		}
 
-	if app.Spec.Executor.ServiceAccount != nil {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%s", common.SparkKubernetesAuthenticateExecutorServiceAccountName, *app.Spec.Executor.ServiceAccount))
-	}
+		if executor.Cores != nil {
+			// Property "spark.executor.cores" does not allow float values.
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%d", common.SparkExecutorCores, *executor.Cores))
+		}
+		if executor.CoreRequest != nil {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorRequestCores, *executor.CoreRequest))
+		}
+		if executor.CoreLimit != nil {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%s", common.SparkKubernetesExecutorLimitCores, *executor.CoreLimit))
+		}
+		if executor.Memory != nil {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%s", common.SparkExecutorMemory, *executor.Memory))
+		}
+		if executor.MemoryOverhead != nil {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%s", common.SparkExecutorMemoryOverhead, *executor.MemoryOverhead))
+		}
 
-	if app.Spec.Executor.DeleteOnTermination != nil {
-		args = append(args, "--conf",
-			fmt.Sprintf("%s=%t", common.SparkKubernetesExecutorDeleteOnTermination, *app.Spec.Executor.DeleteOnTermination))
-	}
+		if executor.ServiceAccount != nil {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%s", common.SparkKubernetesAuthenticateExecutorServiceAccountName, *executor.ServiceAccount))
+		}
 
-	// Populate SparkApplication labels to executor pod
-	for key, value := range app.Labels {
-		property := fmt.Sprintf(common.SparkKubernetesExecutorLabelTemplate, key)
-		args = append(args, "--conf", fmt.Sprintf("%s=%s", property, value))
-	}
-	for key, value := range app.Spec.Executor.Labels {
-		property := fmt.Sprintf(common.SparkKubernetesExecutorLabelTemplate, key)
-		args = append(args, "--conf", fmt.Sprintf("%s=%s", property, value))
-	}
+		if executor.DeleteOnTermination != nil {
+			args = append(args, "--conf",
+				fmt.Sprintf("%s=%t", common.SparkKubernetesExecutorDeleteOnTermination, *executor.DeleteOnTermination))
+		}
 
-	for key, value := range app.Spec.Executor.Annotations {
-		property := fmt.Sprintf(common.SparkKubernetesExecutorAnnotationTemplate, key)
-		args = append(args, "--conf", fmt.Sprintf("%s=%s", property, value))
-	}
+		// Populate SparkApplication labels to executor pod
+		for key, value := range app.Labels {
+			property := fmt.Sprintf(common.SparkKubernetesExecutorLabelTemplate, key)
+			args = append(args, "--conf", fmt.Sprintf("%s=%s", property, value))
+		}
+		for key, value := range executor.Labels {
+			property := fmt.Sprintf(common.SparkKubernetesExecutorLabelTemplate, key)
+			args = append(args, "--conf", fmt.Sprintf("%s=%s", property, value))
+		}
 
-	for key, value := range app.Spec.Executor.EnvSecretKeyRefs {
-		property := fmt.Sprintf(common.SparkKubernetesExecutorSecretKeyRefTemplate, key)
-		args = append(args, "--conf", fmt.Sprintf("%s=%s:%s", property, value.Name, value.Key))
-	}
+		for key, value := range executor.Annotations {
+			property := fmt.Sprintf(common.SparkKubernetesExecutorAnnotationTemplate, key)
+			args = append(args, "--conf", fmt.Sprintf("%s=%s", property, value))
+		}
 
-	if app.Spec.Executor.JavaOptions != nil {
-		args = append(args, "--conf", fmt.Sprintf("%s=%s", common.SparkExecutorExtraJavaOptions, *app.Spec.Executor.JavaOptions))
+		for key, value := range executor.EnvSecretKeyRefs {
+			property := fmt.Sprintf(common.SparkKubernetesExecutorSecretKeyRefTemplate, key)
+			args = append(args, "--conf", fmt.Sprintf("%s=%s:%s", property, value.Name, value.Key))
+		}
+
+		if executor.JavaOptions != nil {
+			args = append(args, "--conf", fmt.Sprintf("%s=%s", common.SparkExecutorExtraJavaOptions, *executor.JavaOptions))
+		}
+
 	}
 
 	return args, nil
@@ -741,20 +745,24 @@ func executorConfOption(app *v1beta2.SparkApplication) ([]string, error) {
 
 func executorSecretOption(app *v1beta2.SparkApplication) ([]string, error) {
 	var args []string
-	for _, secret := range app.Spec.Executor.Secrets {
-		property := fmt.Sprintf(common.SparkKubernetesExecutorSecretsTemplate, secret.Name)
-		args = append(args, "--conf", fmt.Sprintf("%s=%s", property, secret.Path))
-		switch secret.Type {
-		case v1beta2.SecretTypeGCPServiceAccount:
-			property := fmt.Sprintf(common.SparkKubernetesDriverEnvTemplate, common.EnvGoogleApplicationCredentials)
-			args = append(args, "--conf", fmt.Sprintf("%s=%s", property,
-				filepath.Join(secret.Path, common.ServiceAccountJSONKeyFileName)))
-		case v1beta2.SecretTypeHadoopDelegationToken:
-			property := fmt.Sprintf(common.SparkKubernetesDriverEnvTemplate, common.EnvHadoopTokenFileLocation)
-			args = append(args, "--conf", fmt.Sprintf("%s=%s", property,
-				filepath.Join(secret.Path, common.HadoopDelegationTokenFileName)))
+	
+	for _, executor := range app.Spec.Executor {
+		for _, secret := range executor.Secrets {
+			property := fmt.Sprintf(common.SparkKubernetesExecutorSecretsTemplate, secret.Name)
+			args = append(args, "--conf", fmt.Sprintf("%s=%s", property, secret.Path))
+			switch secret.Type {
+			case v1beta2.SecretTypeGCPServiceAccount:
+				property := fmt.Sprintf(common.SparkKubernetesDriverEnvTemplate, common.EnvGoogleApplicationCredentials)
+				args = append(args, "--conf", fmt.Sprintf("%s=%s", property,
+					filepath.Join(secret.Path, common.ServiceAccountJSONKeyFileName)))
+			case v1beta2.SecretTypeHadoopDelegationToken:
+				property := fmt.Sprintf(common.SparkKubernetesDriverEnvTemplate, common.EnvHadoopTokenFileLocation)
+				args = append(args, "--conf", fmt.Sprintf("%s=%s", property,
+					filepath.Join(secret.Path, common.HadoopDelegationTokenFileName)))
+			}
 		}
 	}
+
 	return args, nil
 }
 

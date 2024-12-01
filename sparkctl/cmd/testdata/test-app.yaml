@@ -27,5 +27,6 @@ spec:
   driver:
     image: "spark"
   executor:
-    image: "spark"
-    instances: 1
+    -
+      image: "spark"
+      instances: 1

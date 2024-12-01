@@ -64,20 +64,29 @@ func setDriverSpecDefaults(spec *DriverSpec, sparkConf map[string]string) {
 	}
 }
 
-func setExecutorSpecDefaults(spec *ExecutorSpec, sparkConf map[string]string, allocSpec *DynamicAllocation) {
-	if _, exists := sparkConf["spark.executor.cores"]; !exists && spec.Cores == nil {
-		spec.Cores = new(int32)
-		*spec.Cores = 1
+func setExecutorSpecDefaults(spec *[]ExecutorSpec, sparkConf map[string]string, allocSpec *DynamicAllocation) {
+
+	if len(*spec) == 0 {
+		*spec = append(*spec, ExecutorSpec{})
 	}
-	if _, exists := sparkConf["spark.executor.memory"]; !exists && spec.Memory == nil {
-		spec.Memory = new(string)
-		*spec.Memory = "1g"
-	}
-	var dynalloc, _ = sparkConf["spark.dynamicallocation.enabled"]
-	if dynamic, _ := strconv.ParseBool(dynalloc); !dynamic && (allocSpec == nil || !allocSpec.Enabled) {
-		if _, exists := sparkConf["spark.executor.instances"]; !exists && spec.Instances == nil {
-			spec.Instances = new(int32)
-			*spec.Instances = 1
+
+	for i := range *spec {
+		if _, exists := sparkConf["spark.executor.cores"]; !exists && (*spec)[i].Cores == nil {
+			(*spec)[i].Cores = new(int32)
+			*(*spec)[i].Cores = 1
 		}
+		if _, exists := sparkConf["spark.executor.memory"]; !exists && (*spec)[i].Memory == nil {
+			(*spec)[i].Memory = new(string)
+			*(*spec)[i].Memory = "1g"
+		}
+
+		var dynalloc, _ = sparkConf["spark.dynamicallocation.enabled"]
+		if dynamic, _ := strconv.ParseBool(dynalloc); !dynamic && (allocSpec == nil || !allocSpec.Enabled) {
+			if _, exists := sparkConf["spark.executor.instances"]; !exists && (*spec)[i].Instances == nil {
+				(*spec)[i].Instances = new(int32)
+				*(*spec)[i].Instances = 1
+			}
+		}
+
 	}
 }

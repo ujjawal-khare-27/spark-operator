@@ -45,14 +45,14 @@ func TestSchedule(t *testing.T) {
 							Memory:    util.StringPtr("512m"),
 						},
 					},
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						Instances: util.Int32Ptr(2),
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							Cores:     util.Int32Ptr(1),
 							CoreLimit: util.StringPtr("1200m"),
 							Memory:    util.StringPtr("512m"),
 						},
-					},
+					}},
 					BatchSchedulerOptions: &v1beta2.BatchSchedulerConfiguration{
 						Queue: util.StringPtr("root.default"),
 					},
@@ -90,14 +90,14 @@ func TestSchedule(t *testing.T) {
 							Memory: util.StringPtr("8g"),
 						},
 					},
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						Instances: util.Int32Ptr(4),
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							MemoryOverhead: util.StringPtr("2g"),
 							Cores:          util.Int32Ptr(8),
 							Memory:         util.StringPtr("64g"),
 						},
-					},
+					}},
 					DynamicAllocation: &v1beta2.DynamicAllocation{
 						Enabled:          true,
 						InitialExecutors: util.Int32Ptr(8),
@@ -148,7 +148,7 @@ func TestSchedule(t *testing.T) {
 							},
 						},
 					},
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						Instances: util.Int32Ptr(1),
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							Cores:  util.Int32Ptr(1),
@@ -172,7 +172,7 @@ func TestSchedule(t *testing.T) {
 							},
 							Labels: map[string]string{"label": "value"},
 						},
-					},
+					}},
 				},
 			},
 			expected: []taskGroup{
@@ -233,13 +233,13 @@ func TestSchedule(t *testing.T) {
 							Memory: util.StringPtr("512m"),
 						},
 					},
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						Instances: util.Int32Ptr(2),
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							Cores:  util.Int32Ptr(1),
 							Memory: util.StringPtr("512m"),
 						},
-					},
+					}},
 					SparkConf: map[string]string{
 						"spark.executor.pyspark.memory": "500m",
 					},
@@ -276,13 +276,13 @@ func TestSchedule(t *testing.T) {
 							Memory: util.StringPtr("512m"),
 						},
 					},
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						Instances: util.Int32Ptr(2),
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							Cores:  util.Int32Ptr(1),
 							Memory: util.StringPtr("512m"),
 						},
-					},
+					}},
 					SparkConf: map[string]string{
 						"spark.memory.offHeap.enabled": "true",
 						"spark.memory.offHeap.size":    "400m",
@@ -320,13 +320,13 @@ func TestSchedule(t *testing.T) {
 							Memory: util.StringPtr("512m"),
 						},
 					},
-					Executor: v1beta2.ExecutorSpec{
+					Executor: []v1beta2.ExecutorSpec{{
 						Instances: util.Int32Ptr(2),
 						SparkPodSpec: v1beta2.SparkPodSpec{
 							Cores:  util.Int32Ptr(1),
 							Memory: util.StringPtr("512m"),
 						},
-					},
+					}},
 					SparkConf: map[string]string{
 						"spark.memory.offHeap.enabled":  "true",
 						"spark.memory.offHeap.size":     "400m",
@@ -371,11 +371,17 @@ func TestSchedule(t *testing.T) {
 			options := tc.app.Spec.BatchSchedulerOptions
 			if options != nil && options.Queue != nil {
 				assert.Equal(t, *options.Queue, tc.app.Spec.Driver.Labels[queueLabel])
-				assert.Equal(t, *options.Queue, tc.app.Spec.Executor.Labels[queueLabel])
+
+				// Check if the scheduler name is set to yunikorn
+				assert.Equal(t, "yunikorn", *tc.app.Spec.Driver.SchedulerName)
+
+				for _, executor := range tc.app.Spec.Executor {
+					assert.Equal(t, "yunikorn", executor.SchedulerName)
+					assert.Equal(t, *options.Queue, executor.Labels[queueLabel])
+
+				}
 			}
 
-			assert.Equal(t, "yunikorn", *tc.app.Spec.Driver.SchedulerName)
-			assert.Equal(t, "yunikorn", *tc.app.Spec.Executor.SchedulerName)
 		})
 	}
 }

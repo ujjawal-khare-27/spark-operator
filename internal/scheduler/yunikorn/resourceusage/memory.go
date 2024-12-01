@@ -128,13 +128,13 @@ func driverMemoryRequest(app *v1beta2.SparkApplication) (string, error) {
 	return bytesToMi(requestBytes), nil
 }
 
-func executorMemoryRequest(app *v1beta2.SparkApplication) (string, error) {
+func executorMemoryRequest(app *v1beta2.SparkApplication, executor v1beta2.ExecutorSpec) (string, error) {
 	memoryOverheadFactor, err := getMemoryOverheadFactor(app)
 	if err != nil {
 		return "", err
 	}
 
-	requestBytes, err := memoryRequestBytes(&app.Spec.Executor.SparkPodSpec, memoryOverheadFactor)
+	requestBytes, err := memoryRequestBytes(&executor.SparkPodSpec, memoryOverheadFactor)
 	if err != nil {
 		return "", err
 	}

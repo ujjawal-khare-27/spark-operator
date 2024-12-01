@@ -89,7 +89,7 @@ type SparkApplicationSpec struct {
 	// Driver is the driver specification.
 	Driver DriverSpec `json:"driver"`
 	// Executor is the executor specification.
-	Executor ExecutorSpec `json:"executor"`
+	Executor []ExecutorSpec `json:"executor"`
 	// Deps captures all possible types of dependencies of a Spark application.
 	// +optional
 	Deps Dependencies `json:"deps,omitempty"`

@@ -633,7 +633,7 @@ func TestPatchSparkPod_SecurityContext(t *testing.T) {
 					},
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					PodSecurityContext: &corev1.PodSecurityContext{
 						RunAsUser: &user,
@@ -643,7 +643,7 @@ func TestPatchSparkPod_SecurityContext(t *testing.T) {
 						RunAsUser:                &user2,
 					},
 				},
-			},
+			}},
 		},
 	}
 
@@ -694,8 +694,12 @@ func TestPatchSparkPod_SecurityContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, app.Spec.Executor.PodSecurityContext, modifiedExecutorPod.Spec.SecurityContext)
-	assert.Equal(t, app.Spec.Executor.SecurityContext, modifiedExecutorPod.Spec.Containers[0].SecurityContext)
+
+	for _, executor := range app.Spec.Executor {
+		assert.Equal(t, executor.PodSecurityContext, modifiedExecutorPod.Spec.SecurityContext)
+		assert.Equal(t, executor.SecurityContext, modifiedExecutorPod.Spec.Containers[0].SecurityContext)
+	}
+
 }
 
 func TestPatchSparkPod_SchedulerName(t *testing.T) {
@@ -713,9 +717,9 @@ func TestPatchSparkPod_SchedulerName(t *testing.T) {
 					SchedulerName: &schedulerName,
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
-			},
+			}},
 		},
 	}
 
@@ -785,10 +789,10 @@ func TestPatchSparkPod_PriorityClassName(t *testing.T) {
 				SparkPodSpec:      v1beta2.SparkPodSpec{},
 				PriorityClassName: &priorityClassName,
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec:      v1beta2.SparkPodSpec{},
 				PriorityClassName: &priorityClassName,
-			},
+			}},
 		},
 	}
 
@@ -818,7 +822,7 @@ func TestPatchSparkPod_PriorityClassName(t *testing.T) {
 	assert.Equal(t, priorityClassName, modifiedDriverPod.Spec.PriorityClassName)
 
 	var defaultPriority int32
-	var defaultPolicy corev1.PreemptionPolicy = corev1.PreemptLowerPriority
+	var defaultPolicy = corev1.PreemptLowerPriority
 	executorPod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "spark-executor",
@@ -870,7 +874,7 @@ func TestPatchSparkPod_Sidecars(t *testing.T) {
 					},
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					Sidecars: []corev1.Container{
 						{
@@ -883,7 +887,7 @@ func TestPatchSparkPod_Sidecars(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 		},
 	}
 
@@ -961,7 +965,7 @@ func TestPatchSparkPod_InitContainers(t *testing.T) {
 					},
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					InitContainers: []corev1.Container{
 						{
@@ -974,7 +978,7 @@ func TestPatchSparkPod_InitContainers(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 		},
 	}
 
@@ -1050,9 +1054,9 @@ func TestPatchSparkPod_DNSConfig(t *testing.T) {
 			Driver: v1beta2.DriverSpec{
 				SparkPodSpec: v1beta2.SparkPodSpec{DNSConfig: sampleDNSConfig},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{DNSConfig: sampleDNSConfig},
-			},
+			}},
 		},
 	}
 
@@ -1120,11 +1124,11 @@ func TestPatchSparkPod_NodeSector(t *testing.T) {
 					NodeSelector: map[string]string{"disk": "ssd", "secondkey": "secondvalue"},
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					NodeSelector: map[string]string{"nodeType": "gpu", "secondkey": "secondvalue"},
 				},
-			},
+			}},
 		},
 	}
 
@@ -1247,9 +1251,9 @@ func TestPatchSparkPod_GPU(t *testing.T) {
 			Driver: v1beta2.DriverSpec{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
-			},
+			}},
 		},
 	}
 	tests := []testcase{
@@ -1317,7 +1321,10 @@ func TestPatchSparkPod_GPU(t *testing.T) {
 
 	for _, test := range tests {
 		app.Spec.Driver.GPU = test.gpuSpec
-		app.Spec.Executor.GPU = test.gpuSpec
+
+		for _, executor := range app.Spec.Executor {
+			executor.GPU = test.gpuSpec
+		}
 		driverPod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "spark-driver",
@@ -1386,9 +1393,9 @@ func TestPatchSparkPod_HostNetwork(t *testing.T) {
 			Driver: v1beta2.DriverSpec{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
-			},
+			}},
 		},
 	}
 
@@ -1400,7 +1407,10 @@ func TestPatchSparkPod_HostNetwork(t *testing.T) {
 
 	for _, test := range tests {
 		app.Spec.Driver.HostNetwork = test
-		app.Spec.Executor.HostNetwork = test
+
+		for _, executor := range app.Spec.Executor {
+			executor.HostNetwork = test
+		}
 		driverPod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "spark-driver",
@@ -1472,7 +1482,7 @@ func TestPatchSparkPod_Env(t *testing.T) {
 			UID:  "spark-test-1",
 		},
 		Spec: v1beta2.SparkApplicationSpec{
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					Env: []corev1.EnvVar{
 						{
@@ -1481,7 +1491,7 @@ func TestPatchSparkPod_Env(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 			Driver: v1beta2.DriverSpec{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					Env: []corev1.EnvVar{
@@ -1562,7 +1572,7 @@ func TestPatchSparkPod_EnvFrom(t *testing.T) {
 			UID:  "spark-test-1",
 		},
 		Spec: v1beta2.SparkApplicationSpec{
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					EnvFrom: []corev1.EnvFromSource{
 						{
@@ -1581,7 +1591,7 @@ func TestPatchSparkPod_EnvFrom(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 			Driver: v1beta2.DriverSpec{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					EnvFrom: []corev1.EnvFromSource{
@@ -1668,9 +1678,9 @@ func TestPatchSparkPod_GracePeriodSeconds(t *testing.T) {
 			Driver: v1beta2.DriverSpec{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
-			},
+			}},
 		},
 	}
 
@@ -1682,7 +1692,10 @@ func TestPatchSparkPod_GracePeriodSeconds(t *testing.T) {
 
 	for _, test := range tests {
 		app.Spec.Driver.TerminationGracePeriodSeconds = test
-		app.Spec.Executor.TerminationGracePeriodSeconds = test
+
+		for _, executor := range app.Spec.Executor {
+			executor.TerminationGracePeriodSeconds = test
+		}
 		driverPod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "spark-driver",
@@ -1759,11 +1772,11 @@ func TestPatchSparkPod_Lifecycle(t *testing.T) {
 					PreStop: &corev1.LifecycleHandler{Exec: preStopTest},
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				Lifecycle: &corev1.Lifecycle{
 					PostStart: &corev1.LifecycleHandler{Exec: postStartTest},
 				},
-			},
+			}},
 		},
 	}
 
@@ -1852,7 +1865,7 @@ func TestPatchSparkPod_HostAliases(t *testing.T) {
 					},
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{
 					HostAliases: []corev1.HostAlias{
 						{
@@ -1865,7 +1878,7 @@ func TestPatchSparkPod_HostAliases(t *testing.T) {
 						},
 					},
 				},
-			},
+			}},
 		},
 	}
 
@@ -1937,12 +1950,12 @@ func TestPatchSparkPod_Ports(t *testing.T) {
 					{Name: "driverPort2", ContainerPort: 8081, Protocol: "TCP"},
 				},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				Ports: []v1beta2.Port{
 					{Name: "executorPort1", ContainerPort: 8082, Protocol: "TCP"},
 					{Name: "executorPort2", ContainerPort: 8083, Protocol: "TCP"},
 				},
-			},
+			}},
 		},
 	}
 
@@ -2014,9 +2027,9 @@ func TestPatchSparkPod_ShareProcessNamespace(t *testing.T) {
 			Driver: v1beta2.DriverSpec{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
 			},
-			Executor: v1beta2.ExecutorSpec{
+			Executor: []v1beta2.ExecutorSpec{{
 				SparkPodSpec: v1beta2.SparkPodSpec{},
-			},
+			}},
 		},
 	}
 
@@ -2030,7 +2043,10 @@ func TestPatchSparkPod_ShareProcessNamespace(t *testing.T) {
 
 	for _, test := range tests {
 		app.Spec.Driver.ShareProcessNamespace = test
-		app.Spec.Executor.ShareProcessNamespace = test
+
+		for _, executor := range app.Spec.Executor {
+			executor.ShareProcessNamespace = test
+		}
 		driverPod := &corev1.Pod{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "spark-driver",

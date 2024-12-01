@@ -148,11 +148,15 @@ func GetDriverLocalVolumeMounts(app *v1beta2.SparkApplication) []corev1.VolumeMo
 
 func GetExecutorLocalVolumeMounts(app *v1beta2.SparkApplication) []corev1.VolumeMount {
 	volumeMounts := []corev1.VolumeMount{}
-	for _, volumeMount := range app.Spec.Executor.VolumeMounts {
-		if strings.HasPrefix(volumeMount.Name, common.SparkLocalDirVolumePrefix) {
-			volumeMounts = append(volumeMounts, volumeMount)
+	
+	for _, executor := range app.Spec.Executor {
+		for _, volumeMount := range executor.VolumeMounts {
+			if strings.HasPrefix(volumeMount.Name, common.SparkLocalDirVolumePrefix) {
+				volumeMounts = append(volumeMounts, volumeMount)
+			}
 		}
 	}
+
 	return volumeMounts
 }
 
@@ -421,64 +425,53 @@ func GetDriverRequestResource(app *v1beta2.SparkApplication) corev1.ResourceList
 
 // GetExecutorRequestResource returns the executor request resource list.
 func GetExecutorRequestResource(app *v1beta2.SparkApplication) corev1.ResourceList {
-	minResource := corev1.ResourceList{}
+	// Array of resource list for each executor instance
+	var minResource []corev1.ResourceList
 
-	// CoreRequest correspond to executor's core request
-	if app.Spec.Executor.CoreRequest != nil {
-		if value, err := resource.ParseQuantity(*app.Spec.Executor.CoreRequest); err == nil {
-			minResource[corev1.ResourceCPU] = value
-		}
-	}
-
-	// Use Core attribute if CoreRequest is empty
-	if app.Spec.Executor.Cores != nil {
-		if _, ok := minResource[corev1.ResourceCPU]; !ok {
-			if value, err := resource.ParseQuantity(fmt.Sprintf("%d", *app.Spec.Executor.Cores)); err == nil {
-				minResource[corev1.ResourceCPU] = value
+	for _, executor := range app.Spec.Executor {
+		var executorMinResource corev1.ResourceList
+		if executor.Cores != nil {
+			if value, err := resource.ParseQuantity(fmt.Sprintf("%d", *executor.Cores)); err == nil {
+				executorMinResource[corev1.ResourceCPU] = value
 			}
 		}
-	}
 
-	// CoreLimit correspond to executor's core limit, this attribute will be used only when core request is empty.
-	if app.Spec.Executor.CoreLimit != nil {
-		if _, ok := minResource[corev1.ResourceCPU]; !ok {
-			if value, err := resource.ParseQuantity(*app.Spec.Executor.CoreLimit); err == nil {
-				minResource[corev1.ResourceCPU] = value
+		if executor.Memory != nil {
+			if value, err := resource.ParseQuantity(*executor.Memory); err == nil {
+				executorMinResource[corev1.ResourceMemory] = value
 			}
 		}
-	}
 
-	// Memory + MemoryOverhead correspond to executor's memory request
-	if app.Spec.Executor.Memory != nil {
-		if value, err := resource.ParseQuantity(*app.Spec.Executor.Memory); err == nil {
-			minResource[corev1.ResourceMemory] = value
-		}
-	}
-	if app.Spec.Executor.MemoryOverhead != nil {
-		if value, err := resource.ParseQuantity(*app.Spec.Executor.MemoryOverhead); err == nil {
-			if existing, ok := minResource[corev1.ResourceMemory]; ok {
-				existing.Add(value)
-				minResource[corev1.ResourceMemory] = existing
+		if executor.MemoryOverhead != nil {
+			if value, err := resource.ParseQuantity(*executor.MemoryOverhead); err == nil {
+				if existing, ok := executorMinResource[corev1.ResourceMemory]; ok {
+					existing.Add(value)
+					executorMinResource[corev1.ResourceMemory] = existing
+				}
 			}
 		}
+
+		if executor.CoreLimit != nil {
+			if value, err := resource.ParseQuantity(*executor.CoreLimit); err == nil {
+				minResource = append(minResource, corev1.ResourceList{corev1.ResourceCPU: value})
+			}
+		}
+
+		minResource = append(minResource, executorMinResource)
 	}
 
-	resourceList := []corev1.ResourceList{{}}
-	for i := int32(0); i < *app.Spec.Executor.Instances; i++ {
-		resourceList = append(resourceList, minResource)
-	}
-	return SumResourceList(resourceList)
+	return SumResourceList(minResource)
 }
 
 // GetInitialExecutorNumber calculates the initial number of executor pods that will be requested by the driver on startup.
-func GetInitialExecutorNumber(app *v1beta2.SparkApplication) int32 {
+func GetInitialExecutorNumber(app *v1beta2.SparkApplication, spec v1beta2.ExecutorSpec) int32 {
 	// The reference for this implementation: https://github.com/apache/spark/blob/ba208b9ca99990fa329c36b28d0aa2a5f4d0a77e/core/src/main/scala/org/apache/spark/scheduler/cluster/SchedulerBackendUtils.scala#L31
 	var initialNumExecutors int32
 
 	dynamicAllocationEnabled := app.Spec.DynamicAllocation != nil && app.Spec.DynamicAllocation.Enabled
 	if dynamicAllocationEnabled {
-		if app.Spec.Executor.Instances != nil {
-			initialNumExecutors = max(initialNumExecutors, *app.Spec.Executor.Instances)
+		if spec.Instances != nil {
+			initialNumExecutors = max(initialNumExecutors, *spec.Instances)
 		}
 		if app.Spec.DynamicAllocation.InitialExecutors != nil {
 			initialNumExecutors = max(initialNumExecutors, *app.Spec.DynamicAllocation.InitialExecutors)
@@ -488,8 +481,8 @@ func GetInitialExecutorNumber(app *v1beta2.SparkApplication) int32 {
 		}
 	} else {
 		initialNumExecutors = 2
-		if app.Spec.Executor.Instances != nil {
-			initialNumExecutors = *app.Spec.Executor.Instances
+		if spec.Instances != nil {
+			initialNumExecutors = *spec.Instances
 		}
 	}
 

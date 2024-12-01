@@ -16,6 +16,7 @@ limitations under the License.
 package v1beta2
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -163,22 +164,26 @@ func TestSetSparkApplicationDefaultsExecutorSpecDefaults(t *testing.T) {
 
 	SetSparkApplicationDefaults(app)
 
-	if app.Spec.Executor.Cores == nil {
-		t.Error("Expected app.Spec.Executor.Cores not to be nil.")
-	} else {
-		assert.Equal(t, int32(1), *app.Spec.Executor.Cores)
-	}
+	fmt.Printf("SparkApplication: %+v\n", app.Spec.Executor)
 
-	if app.Spec.Executor.Memory == nil {
-		t.Error("Expected app.Spec.Executor.Memory not to be nil.")
-	} else {
-		assert.Equal(t, "1g", *app.Spec.Executor.Memory)
-	}
+	for _, executorSpec := range app.Spec.Executor {
+		if executorSpec.Cores == nil {
+			t.Error("Expected executorSpec.Cores not to be nil.")
+		} else {
+			assert.Equal(t, int32(1), *executorSpec.Cores)
+		}
 
-	if app.Spec.Executor.Instances == nil {
-		t.Error("Expected app.Spec.Executor.Instances not to be nil.")
-	} else {
-		assert.Equal(t, int32(1), *app.Spec.Executor.Instances)
+		if executorSpec.Memory == nil {
+			t.Error("Expected executorSpec.Memory not to be nil.")
+		} else {
+			assert.Equal(t, "1g", *executorSpec.Memory)
+		}
+
+		if executorSpec.Instances == nil {
+			t.Error("Expected executorSpec.Instances not to be nil.")
+		} else {
+			assert.Equal(t, int32(1), *executorSpec.Instances)
+		}
 	}
 
 	//Case2: Executor config set via SparkConf.
@@ -194,9 +199,11 @@ func TestSetSparkApplicationDefaultsExecutorSpecDefaults(t *testing.T) {
 
 	SetSparkApplicationDefaults(app)
 
-	assert.Nil(t, app.Spec.Executor.Cores)
-	assert.Nil(t, app.Spec.Executor.Memory)
-	assert.Nil(t, app.Spec.Executor.Instances)
+	for _, executorSpec := range app.Spec.Executor {
+		assert.Nil(t, executorSpec.Cores)
+		assert.Nil(t, executorSpec.Memory)
+		assert.Nil(t, executorSpec.Instances)
+	}
 
 	//Case3: Dynamic allocation is enabled with minExecutors = 0
 	var minExecs = int32(0)
@@ -210,7 +217,9 @@ func TestSetSparkApplicationDefaultsExecutorSpecDefaults(t *testing.T) {
 	}
 
 	SetSparkApplicationDefaults(app)
-	assert.Nil(t, app.Spec.Executor.Instances)
+	for _, executorSpec := range app.Spec.Executor {
+		assert.Nil(t, executorSpec.Instances)
+	}
 
 	//Case4: Dynamic allocation is enabled via SparkConf
 	app = &SparkApplication{
@@ -222,5 +231,7 @@ func TestSetSparkApplicationDefaultsExecutorSpecDefaults(t *testing.T) {
 	}
 
 	SetSparkApplicationDefaults(app)
-	assert.Nil(t, app.Spec.Executor.Instances)
+	for _, executorSpec := range app.Spec.Executor {
+		assert.Nil(t, executorSpec.Instances)
+	}
 }

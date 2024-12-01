@@ -216,9 +216,16 @@ func loadFromYAML(yamlFile string) (*v1beta2.SparkApplication, error) {
 }
 
 func validateSpec(spec v1beta2.SparkApplicationSpec) error {
-	if spec.Image == nil && (spec.Driver.Image == nil || spec.Executor.Image == nil) {
+	if spec.Image == nil && (spec.Driver.Image == nil) {
 		return fmt.Errorf("'spec.driver.image' and 'spec.executor.image' cannot be empty when 'spec.image' " +
 			"is not set")
+	}
+
+	for _, executor := range spec.Executor {
+		if spec.Image == nil && executor.Image == nil {
+			return fmt.Errorf("'spec.driver.image' and 'spec.executor.image' cannot be empty when 'spec.image' " +
+				"is not set")
+		}
 	}
 
 	return nil
